@@ -10,11 +10,11 @@
 #define bx blockIdx.x
 #define by blockIdx.y
 #define bz blockIdx.z
-#define _UI16_MAX 0xffff
+#define _UI16_MAX 0xffffU
 
 #define TILEXSHIFT 4
 #define TILEYSHIFT 4
-#define DEPTHSHIFT 3
+#define DEPTHSHIFT 4
 // TILEX and TILEY are used to set the number of threads in a CUDA block
 #define TILEX (1 << TILEXSHIFT)
 #define TILEY (1 << TILEYSHIFT)
@@ -50,7 +50,7 @@ __global__ void kernelFunc(float *ad, float *bd, float *cd, const int m, const i
 		if ( (tx >> DEPTHSHIFT) == (k & (~(_UI16_MAX<<(TILEXSHIFT - DEPTHSHIFT)))) )			// tx / DEPTH == (k % TILEX) / DEPTH
 			As[ty][tx & (~(_UI16_MAX << DEPTHSHIFT)) ] = mem2d(ad, m, i, k << DEPTHSHIFT + (ty & (~(_UI16_MAX << DEPTHSHIFT))) );
 		if ( (ty >> DEPTHSHIFT) == (k & (~(_UI16_MAX<<(TILEYSHIFT - DEPTHSHIFT)))) )
-			Bs[ ty & (~(_UI16_MAX << DEPTHSHIFT)) ][tx] = mem2d(bd, m, k << DEPTHSHIFT + (ty & (~(_UI16_MAX << DEPTHSHIFT))), j);
+			Bs[ ty & (~(_UI16_MAX << DEPTHSHIFT)) ][tx] = mem2d(bd, m, k << DEPTHSHIFT + (tx & (~(_UI16_MAX << DEPTHSHIFT))), j);
 		__syncthreads();
 
 		for (l = 0; l < DEPTH; l++)
