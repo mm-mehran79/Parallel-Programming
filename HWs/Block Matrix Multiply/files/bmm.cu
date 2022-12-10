@@ -43,8 +43,8 @@ __global__ void kernelFunc(float *ad, float *bd, float *cd, const int m, const i
 	__shared__ float Bs[DEPTH][TILEX];
 	float tempC = 0;
 	unsigned short k, l;
-	unsigned short i = ty + (by << TILEYSHIFT);
-	unsigned short j = tx + (bx << TILEXSHIFT);
+	const unsigned short i = ty + (by << TILEYSHIFT);
+	const unsigned short j = tx + (bx << TILEXSHIFT);
 	for (k = 0; k < (n >> DEPTHSHIFT); k++)
 	{
 		__syncthreads();
