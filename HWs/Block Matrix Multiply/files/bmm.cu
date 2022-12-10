@@ -10,11 +10,10 @@
 #define bx blockIdx.x
 #define by blockIdx.y
 #define bz blockIdx.z
-#define _UI16_MAX 0xffffU
 
-#define TILEXSHIFT 4
-#define TILEYSHIFT 4
-#define DEPTHSHIFT 4
+#define TILEXSHIFT 5
+#define TILEYSHIFT 5
+#define DEPTHSHIFT 7
 // TILEX and TILEY are used to set the number of threads in a CUDA block
 #define TILEX (1 << TILEXSHIFT)
 #define TILEY (1 << TILEYSHIFT)
@@ -24,6 +23,8 @@
 
 // you may define other parameters here!
 // you may define other macros here!
+//#define MOD(x, y) ((x) & ((1 << (y)) - 1))
+// #define MOD(x, y) ((x) % ((1 << (y))))
 // you may define other functions here!
 
 dim3 getDimGrid(const int m, const int n)
@@ -47,18 +48,30 @@ __global__ void kernelFunc(float *ad, float *bd, float *cd, const int m, const i
 	for (k = 0; k < (n >> DEPTHSHIFT); k++)
 	{
 		__syncthreads();
-		if ( (tx >> DEPTHSHIFT) == (k & (~(_UI16_MAX<<(TILEXSHIFT - DEPTHSHIFT)))) )			// tx / DEPTH == (k % TILEX) / DEPTH
-			As[ty][tx & (~(_UI16_MAX << DEPTHSHIFT)) ] = mem2d(ad, m, i, k << DEPTHSHIFT + (ty & (~(_UI16_MAX << DEPTHSHIFT))) );
-		if ( (ty >> DEPTHSHIFT) == (k & (~(_UI16_MAX<<(TILEYSHIFT - DEPTHSHIFT)))) )
-			Bs[ ty & (~(_UI16_MAX << DEPTHSHIFT)) ][tx] = mem2d(bd, m, k << DEPTHSHIFT + (tx & (~(_UI16_MAX << DEPTHSHIFT))), j);
-		__syncthreads();
+		#if DEPTH == TILEX
+			As[ty][tx] = mem2d(ad, m, i, (k<<DEPTHSHIFT) + tx);
+		#elif DEPTH > TILEX
+			for (l = 0; l < (1 << (DEPTHSHIFT-TILEXSHIFT)); l++)
+				As[ty][tx + (l<<TILEXSHIFT)] = mem2d(ad, m, i, (k << DEPTHSHIFT) + tx + (l<<TILEXSHIFT));
+		#else
+			if ( (tx >> DEPTHSHIFT) == 0 )
+				As[ty][tx] = mem2d(ad, m, i, (k << DEPTHSHIFT) + tx);
+		#endif
 
+		#if DEPTH == TILEY
+			Bs[ty][tx] = mem2d(bd, m, (k<<DEPTHSHIFT) + ty, j);
+		#elif DEPTH > TILEY
+			for (l = 0; l < (1 << (DEPTHSHIFT-TILEYSHIFT)); l++)
+				Bs[ty + (l<<TILEYSHIFT)][tx] = mem2d(bd, m, (k << DEPTHSHIFT) + ty + (l<<TILEYSHIFT), j);
+		#else
+			if ( (ty >> DEPTHSHIFT) == 0 )
+				Bs[ty][tx] = mem2d(bd, m, (k << DEPTHSHIFT) + ty, j);
+		#endif
+		__syncthreads();
 		for (l = 0; l < DEPTH; l++)
 		{
 			tempC += As[ty][l] * Bs[l][tx];
 		}
 	}
 	mem2d(cd, m, i, j) = tempC;
-
-	// write your GPU kernel function here
 }
