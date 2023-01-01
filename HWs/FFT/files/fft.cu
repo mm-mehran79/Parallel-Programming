@@ -20,5 +20,7 @@ void gpuKernel(float* x_r_d, float* x_i_d, /*float* X_r_d, float* X_i_d,*/ const
 {
 	// In this function, both inputs and outputs are on GPU.
 	// No need for cudaMalloc, cudaMemcpy or cudaFree.
+	// This function does not run on GPU. 
+	// You need to define another function and call it here for GPU execution.
 	
 }

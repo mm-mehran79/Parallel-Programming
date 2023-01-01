@@ -101,7 +101,7 @@ void gpuKernels(float* x_r, float* x_i, float* X_r, float* X_i, unsigned int N, 
 
 	GpuTimer timer;
     timer.Start();
-	gpuKernel<<<...>>>(x_r_d, x_i_d, N, M);//, X_r_d, X_i_d, N, M);
+	gpuKernel(x_r_d, x_i_d, N, M);/*<<<dim3(32,1,1),dim3(32,1,1)>>>(x_r_d, x_i_d, N, M);*/
 	timer.Stop();
 	*gpu_kernel_time = timer.Elapsed();
 	
