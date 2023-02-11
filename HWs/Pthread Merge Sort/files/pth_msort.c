@@ -87,7 +87,7 @@ void *firstStageSort(void *arg)
     } */
 
     // Quick sort:
-    // sorted used as stack
+    // "sorted" used as stack
     uint top = start - 1U;                          // initialize top of stack
     uint low = start, high = end - 1U;              // high and low are index for values; and top and start are used for sorted;
   
@@ -121,8 +121,6 @@ void *firstStageSort(void *arg)
     // swap two array: (it could be implemented better if i use pointer to array instead of array in pth_msort)
     uint i;
     for (i = start; i < end; i++) sorted[i] = values[i];
-     
-
 }
 
 void *middleStageSort(void *arg)
