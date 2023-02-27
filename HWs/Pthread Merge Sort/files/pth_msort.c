@@ -42,7 +42,7 @@ void swap(int* a, int* b)
 	*b = t;
 }
 
-int partition(int arr[], uint l, uint h)
+uint partition(int arr[], uint l, uint h)
 {
 	int x = arr[h];
 	uint i = (l - 1), j;
@@ -87,35 +87,36 @@ void *firstStageSort(void *arg)
 	} */
 
 	// Quick sort:
-	// "sorted" used as stack
-	uint top = start - 1U;                          // initialize top of stack
+	// "sorted" used as stack                    
 	uint low = start, high = end - 1U;              // high and low are index for values; and top and start are used for sorted;
+	uint *stack = (uint*)&sorted[start];			// initialize top of stack
+	uint *stackStart = stack;
   
 	// push initial values of l and h to stack
-	sorted[++top] = low;
-	sorted[++top] = high;
+	*(stack++) = low;
+	*(stack++) = high;
   
 	// Keep popping from stack while is not empty
-	while ((top >= start) && (top < end)) {
+	while (stack != stackStart) {
 		// Pop h and l
-		high = sorted[top--];
-		low = sorted[top--];
+		high = *(--stack);
+		low = *(--stack);
   
 		// Set pivot element at its correct position
-		// in sorted array
-		int p = partition(values, low, high);
+		// in stack array
+		uint p = partition(values, low, high);
   
 		// If there are elements on left side of pivot,
 		// then push left side to stack
-		if (p - 1 > low) {
-			sorted[++top] = low;
-			sorted[++top] = p - 1;
+		if (p > low + 1U) {
+			*(stack++) = low;
+			*(stack++) = p - 1U;
 		}
 		// If there are elements on right side of pivot,
 		// then push right side to stack
-		if (p + 1 < high) {
-			sorted[++top] = p + 1;
-			sorted[++top] = high;
+		if (p + 1U < high) {
+			*(stack++) = p + 1U;
+			*(stack++) = high;
 		}
 	}
 	// swap two array: (it could be implemented better if i use pointer to array instead of array in pth_msort)
@@ -215,18 +216,18 @@ void mergeSortParallel (const int* values, unsigned int N, int* sorted)
 	{
 		pthread_join(handle[i], NULL);
 	}
-	pthread_t middleHandle[(FIRST_STAGE_THREAD/2U)];
+	// pthread_t middleHandle[(FIRST_STAGE_THREAD/2U)];
 	for (i = 0U; i < (FIRST_STAGE_THREAD/2U); i++)
 	{
 		// middleStageSort((void *)&middleArgs[i]);
-		pthread_create(&middleHandle[i], NULL, middleStageSort, (void *) &middleArgs[i]);
+		pthread_create(&handle[i], NULL, middleStageSort, (void *) &middleArgs[i]);
 	}
 	
 	struct lastStageSortArgs lastArgs[LAST_NODE_THREAD];
 	temp = 0U; // N/(LAST_NODE_THREAD * 2U);
 	uint lowIndex = N / 2U;
-	pthread_t lastNodeHandle[LAST_NODE_THREAD];
-	for (i = 0U; i < (FIRST_STAGE_THREAD/2U); i++) pthread_join(middleHandle[i], NULL);
+	// pthread_t lastNodeHandle[LAST_NODE_THREAD];
+	for (i = 0U; i < (FIRST_STAGE_THREAD/2U); i++) pthread_join(handle[i], NULL);
 
 	// last node sort (values)
 	for (i = 0U; i < LAST_NODE_THREAD; i++)
@@ -244,7 +245,7 @@ void mergeSortParallel (const int* values, unsigned int N, int* sorted)
 			lowIndex = binarySearch(values, lowIndex, (N-1U), values[temp]);
 			lastArgs[i].j_end = lowIndex;
 		}
-		pthread_create(&lastNodeHandle[i], NULL, lastStageSort, (void*) &lastArgs[i]);        
+		pthread_create(&handle[i], NULL, lastStageSort, (void*) &lastArgs[i]);        
 	}
-	for (i = 0u; i < LAST_NODE_THREAD; i++) pthread_join(lastNodeHandle[i], NULL);
+	for (i = 0u; i < LAST_NODE_THREAD; i++) pthread_join(handle[i], NULL);
 }
