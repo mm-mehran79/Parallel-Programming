@@ -1,0 +1,1 @@
+gcc -O2 pth_msort_test.c pth_msort.c -lpthread -lm
