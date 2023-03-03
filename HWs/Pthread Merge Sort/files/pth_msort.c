@@ -5,7 +5,7 @@
 #include "pth_msort.h"
 
 #define uint unsigned int
-#define FIRST_STAGE_THREAD 4U
+#define FIRST_STAGE_THREAD 8U
 #define LAST_NODE_THREAD 4U
 #define RADIX_OF_SORTING 4U
 #define LOG2_RADIX_OF_SORTING 2U
@@ -216,20 +216,16 @@ void mergeSortParallel (const int* values, unsigned int N, int* sorted)
 	{
 		pthread_join(handle[i], NULL);
 	}
-	// pthread_t middleHandle[(FIRST_STAGE_THREAD/2U)];
 	for (i = 0U; i < (FIRST_STAGE_THREAD/2U); i++)
 	{
-		// middleStageSort((void *)&middleArgs[i]);
 		pthread_create(&handle[i], NULL, middleStageSort, (void *) &middleArgs[i]);
 	}
 	
 	struct lastStageSortArgs lastArgs[LAST_NODE_THREAD];
 	temp = 0U; // N/(LAST_NODE_THREAD * 2U);
 	uint lowIndex = N / 2U;
-	// pthread_t lastNodeHandle[LAST_NODE_THREAD];
 	for (i = 0U; i < (FIRST_STAGE_THREAD/2U); i++) pthread_join(handle[i], NULL);
 
-	// last node sort (values)
 	for (i = 0U; i < LAST_NODE_THREAD; i++)
 	{
 		lastArgs[i].values = (int *)values;
