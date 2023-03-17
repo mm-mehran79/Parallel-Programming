@@ -5,7 +5,7 @@
 #include "pth_msort.h"
 
 #define uint unsigned int
-#define FIRST_STAGE_THREAD 8U
+#define FIRST_STAGE_THREAD 4U
 #define LAST_NODE_THREAD 4U
 #define RADIX_OF_SORTING 4U
 #define LOG2_RADIX_OF_SORTING 2U
